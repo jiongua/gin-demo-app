@@ -2,19 +2,11 @@ package entity
 
 import (
 	"fmt"
-	"github.com/tkanos/gonfig"
+	"gin_demo/interal"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"sync"
 )
-
-type PostgreConfig struct {
-	Host   string
-	User   string
-	Passwd string
-	Dbname string
-	Port   int
-}
 
 type Gorm struct {
 	Dsn string
@@ -59,20 +51,9 @@ func (g *Gorm) connect() {
 }
 
 func (g *Gorm) loadConfig() {
-	dbConfig := PostgreConfig{}
-	dbConfigName := ConfigPath()
-	err := gonfig.GetConf(dbConfigName, &dbConfig)
-	if err != nil {
-		log.Fatalf("read postgre config error: %s\n", err.Error())
-	}
-	g.Dsn = fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=disable TimeZone=Asia/Shanghai",
-		dbConfig.Host, dbConfig.User, dbConfig.Passwd, dbConfig.Dbname, dbConfig.Port)
+	m := interal.GetDbEnv()
+	g.Dsn = fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Shanghai",
+		m["host"], m["user"], m["password"], m["dbname"], m["port"])
 }
 
-func ConfigPath() string {
-	//rootDir, _ := filepath.Abs(filepath.Dir("."))
-	//fmt.Printf("root_dir: %s", rootDir)
-	//return path.Join(rootDir, "config", "pgsql.json")
-	return "/Users/jiongua/zhihu/gin-demo-app/config/pgsql.json"
-}
 

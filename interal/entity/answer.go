@@ -21,3 +21,8 @@ type Answer struct {
 }
 
 type Answers []Answer
+
+//创建新回答
+func (a *Answer) Create() error {
+	return Db().Create(a).Error
+}

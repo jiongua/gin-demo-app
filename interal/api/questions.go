@@ -14,9 +14,9 @@ import (
 var log = glog.Log
 
 //GetQuestion 获取问题及答案
-// GET /api/v1/question/:qid
+// GET /api/v1/question/:qid/answers
 func GetQuestion(router *gin.RouterGroup) {
-	router.GET("/question/:qid", func(c *gin.Context) {
+	router.GET("/:qid/answers", func(c *gin.Context) {
 		qid, _ := strconv.Atoi(c.Param("qid"))
 		//limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
 		//offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
@@ -47,9 +47,9 @@ func GetQuestion(router *gin.RouterGroup) {
 }
 
 //CreateQuestion 提问
-//PUT /api/v1/question
+//POST /api/v1/question
 func CreateQuestion(router *gin.RouterGroup)  {
-	router.PUT("/question", func(c *gin.Context) {
+	router.POST("/", func(c *gin.Context) {
 		var f form.QuestionCreate
 		if err := c.BindJSON(&f); err!=nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -82,9 +82,9 @@ func CreateQuestion(router *gin.RouterGroup)  {
 }
 
 //UpdateQuestion 修改问题
-//Post /api/v1/question/:qid
+//PUT /api/v1/question/:qid
 func UpdateQuestion(router *gin.RouterGroup)  {
-	router.POST("/question/:qid", func(c *gin.Context) {
+	router.PUT("/:qid", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"url": c.Request.URL, "method": c.Request.Method})
 	})
 }
@@ -92,7 +92,7 @@ func UpdateQuestion(router *gin.RouterGroup)  {
 //DeleteAnswer 删除问题
 //Delete /api/v1/question/:qid
 func DeleteQuestion(router *gin.RouterGroup)  {
-	router.DELETE("/question/:qid", func(c *gin.Context) {
+	router.DELETE("/:qid", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"url": c.Request.URL, "method": c.Request.Method})
 	})
 }

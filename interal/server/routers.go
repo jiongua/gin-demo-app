@@ -9,13 +9,14 @@ import (
 func registerRoutes(router *gin.Engine) {
 	// JSON-REST API Version 1
 	v1 := router.Group("/api/v1")
+	question := v1.Group("/question")
 	{
-		api.CreateQuestion(v1)
-		api.GetQuestion(v1)
+		api.CreateQuestion(question)
+		api.GetQuestion(question)
 		//api.UpdateQuestion(v1)
 		//api.DeleteQuestion(v1)
 		//more...
-		//api.CreateAnswer(v1)
+		api.CreateAnswer(question)
 	}
 	people := v1.Group("/people/:uid")
 	{

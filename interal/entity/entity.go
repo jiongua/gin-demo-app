@@ -36,6 +36,7 @@ func (t Types) Migrate(db *gorm.DB)  {
 //创建默认的数据
 func CreateDefaultFixtures() {
 	CreateDefaultUsers()
+	CreateDefaultMessageTypes()
 }
 
 func MigrateDB(db *gorm.DB)  {
