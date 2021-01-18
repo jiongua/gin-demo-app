@@ -11,6 +11,14 @@ type Author struct {
 	IsFollow bool	`json:"is_follow"`
 }
 
+func GetUserName(uid uuid.UUID) string {
+	result, err := GetUserByID(uid)
+	if err != nil {
+		return ""
+	}
+	return result.Name
+}
+
 func GetUserByID(uid uuid.UUID) (entity.User, error) {
 	if IsAnonymousUser(uid) {
 		//return 匿名账户
@@ -41,4 +49,5 @@ func GetAuthorWithFollow(authorID uuid.UUID, loginID uuid.UUID) (author Author, 
 func IsAnonymousUser(id uuid.UUID) bool {
 	return id == uuid.Nil
 }
+
 

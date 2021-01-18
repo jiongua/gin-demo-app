@@ -81,6 +81,7 @@ func QuestionByID(qid int, offset int, _ int, order string) (QuestionAllResult, 
 	}
 }
 
+// GetAttentionCount 根据问题ID获取问题的关注人数
 func GetAttentionCount(qid int) int64 {
 	var count int64
 	entity.Db().Table("attentions").Where("question_refer = ?", qid).Count(&count)

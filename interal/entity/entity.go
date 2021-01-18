@@ -19,6 +19,9 @@ var Entities = Types{
 	"vote_comment": &VoteComment{},
 	"follow": &Follow{},
 	"attention_question": &Attention{},
+	"answer_notify": &AnswerNotify{},
+	"vote_answer_notify": &VoteAnswerNotify{},
+	"vote_comment_notify": &VoteCommentNotify{},
 }
 
 func (t Types) Migrate(db *gorm.DB)  {
@@ -36,7 +39,7 @@ func (t Types) Migrate(db *gorm.DB)  {
 //创建默认的数据
 func CreateDefaultFixtures() {
 	CreateDefaultUsers()
-	CreateDefaultMessageTypes()
+	//CreateDefaultMessageTypes()
 }
 
 func MigrateDB(db *gorm.DB)  {

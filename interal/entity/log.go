@@ -12,7 +12,7 @@ import (
 var GormLogFile *os.File
 
 func init()  {
-	rootPath, _ := filepath.Abs(filepath.Dir("."))
+	rootPath, _ := filepath.Abs(filepath.Dir("../../"))
 	path := filepath.Join(rootPath, "logs", "gorm.log")
 	file, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err == nil {

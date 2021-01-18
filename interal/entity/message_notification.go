@@ -6,25 +6,53 @@ import (
 	"time"
 )
 
+const (
+	QuestionResource = uint8(0)
+	AnswerResource = uint8(1)
+	UserResource = uint8(2)
+)
 //消息类型表
 type MessageTypes struct {
 	ID uint8  `gorm:"primaryKey;autoIncrement" json:"id"`
 	Describe string `gorm:"varchar(50)" json:"describe"`
 }
 
+// 消息共用结构
+type NotifyMeta struct {
+	ID             uint64 `gorm:"primaryKey;autoIncrement" json:"id"`
+	SenderID       uuid.UUID `gorm:"type:uuid" json:"sender_id"`
+	SenderName     string
+	SenderURL      string `gorm:"varchar(100)" json:"sender_url"`
+	ReceiverID     uuid.UUID `gorm:"type:uuid;index" json:"-"`
+	CreatedAt      time.Time
+	IsRead        bool 	`gorm:"default:false;index"`
+	Deleted 	gorm.DeletedAt `json:"-"`
+}
+
 //消息通知表
 type MessageNotification struct {
 	ID             uint64 `gorm:"primaryKey;autoIncrement" json:"id"`
 	SenderID       uuid.UUID `gorm:"type:uuid" json:"sender_id"`
-	SenderURL      string `gorm:"varchar(50)" json:"sender_url"`
+	SenderName     uuid.UUID
+	SenderURL      string `gorm:"varchar(100)" json:"sender_url"`
 	Action         uint8	`json:"-"`
 	ActionDescribe string `gorm:"varchar(50)" json:"action_describe"`
 	ReceiverID     uuid.UUID `gorm:"type:uuid" json:"-"`
-	ResourceID     uint8
-	ResourceURL    string `gorm:"varchar(50)" json:"resource_url"`
+	ResourceType     uint8
+	ResourceURL 	string	`gorm:"varchar(100)"`
+	EventURL    string `gorm:"varchar(50)"`
 	CreatedAt      time.Time
-	IsRead        bool
+	IsRead        bool 	`gorm:"default:false"`
 	Deleted 	gorm.DeletedAt `json:"-"`
+}
+
+
+
+type EventEntry struct {
+	ID int
+	Kind uint8		//消息类型: 消息通知类型、时间线
+	Name string		//消息名称: 通知(回答、点赞、收藏、点赞、评论等)、时间线(提问、回答了、评论了、点赞了..)
+	ResourceID int	//目的资源对象ID
 }
 
 var ActionAnswer = MessageTypes{
@@ -47,18 +75,33 @@ var ActionFollow = MessageTypes{
 	Describe: "关注了",
 }
 
+type MappingMessageType map[uint8]string
+var MappingMessage = MappingMessageType{}
+
+func (m MappingMessageType) GetKey(key uint8) string {
+	return m[key]
+}
+
+func (m MappingMessageType) SetKey(key uint8, val string) {
+	m[key] = val
+}
+
 func CreateDefaultMessageTypes()  {
 	if result := FirstOrCreateMessageTypes(&ActionAnswer); result != nil {
 		ActionAnswer = *result
+		MappingMessage.SetKey(result.ID, result.Describe)
 	}
 	if result := FirstOrCreateMessageTypes(&ActionCommentAnswer); result != nil {
 		ActionCommentAnswer = *result
+		MappingMessage.SetKey(result.ID, result.Describe)
 	}
 	if result := FirstOrCreateMessageTypes(&ActionVoteAnswer); result != nil {
 		ActionVoteAnswer = *result
+		MappingMessage.SetKey(result.ID, result.Describe)
 	}
 	if result := FirstOrCreateMessageTypes(&ActionFollow); result != nil {
 		ActionFollow = *result
+		MappingMessage.SetKey(result.ID, result.Describe)
 	}
 }
 

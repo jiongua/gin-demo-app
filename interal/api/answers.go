@@ -1,11 +1,14 @@
 package api
 
 import (
+	"fmt"
 	"gin_demo/interal/entity"
 	"gin_demo/interal/form"
+	"gin_demo/interal/task"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 //CreateAnswer 新建回答
@@ -53,17 +56,54 @@ func CreateAnswer(router *gin.RouterGroup)  {
 		}
 		//发布消息
 		// <- 写入消息队列，消费者将该消息写入回答者的粉丝时间线缓存
-		// <- 写入消息队列，消费者将该回答设置为所属问题订阅者的通知消息
-		//message := &MessageSendMeta{
-		//	SenderID: answer.AuthorID,
-		//	ActionID: entity.ActionAnswer.ID,
-		//	ResourceID: answer.QuestionRefer,
+		//<- 写入消息队列，消费者将该回答设置为所属问题订阅者的通知消息
+		NotifyNewAnswer(answer, c.Copy())
+		//eventURL := fmt.Sprintf("%s/%d", c.Request.URL.Path, answer.AnswerID)
+		//log.Debugf("eventURL: %s\n", eventURL)
+		//task.NotifyTask.AddTask(mq.NewAnswerNotify(
+		//	answer.AuthorID,
+		//	entity.ActionAnswer.ID,
+		//	entity.QuestionResource,
+		//	eventURL,
+		//	answer.QuestionRefer))
+
+		//task.AsyncPublishNotify(mq.NewAnswerNotify(
+		//	answer.AuthorID,
+		//	entity.ActionAnswer.ID,
+		//	entity.QuestionResource,
+		//	eventURL,
+		//	answer.QuestionRefer))
+
+		//if err != nil {
+		//	log.WithFields(logrus.Fields{
+		//		"author": answer.AuthorID,
+		//		"actions": entity.MappingMessage[entity.ActionAnswer.ID],
+		//		"resourceURL": entity.QuestionResource,
+		//		"questionID": answer.QuestionRefer,
+		//	}).Error("publish subscribe_notify error")
 		//}
-		//mq.Publish(message)
 		c.JSON(http.StatusOK, gin.H{
 			"message": "成功提交回答",
 		})
 	})
+}
+func NotifyNewAnswer(answer entity.Answer, c *gin.Context) {
+	go func(answer entity.Answer) {
+		message := entity.AnswerNotify{
+			NotifyMeta: entity.NotifyMeta{
+				SenderID:   answer.AuthorID,
+				CreatedAt:  time.Now(),
+			},
+			QuestionID: answer.QuestionRefer,
+			QuestionURL: fmt.Sprintf("%s/%d", c.Request.URL.Path, answer.AnswerID),
+		}
+		//data, _ := json.Marshal(message)
+		//note:
+		//publishing from multiple goroutines on the same channel is not safe.
+		//Avoid publishing on the same channel from multiple threads/goroutines/processes
+		log.Debugf("send answer notify to AnswerNotifyChan[%d]\n", cap(task.AnswerNotifyChan))
+		task.AnswerNotifyChan <-message
+	}(answer)
 }
 
 //GetAnswer 获取一条回答
