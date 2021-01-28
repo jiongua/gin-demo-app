@@ -6,7 +6,7 @@ import (
 )
 
 //registerRoutes 注册所有router handler
-func registerRoutes(router *gin.Engine) {
+func RegisterRoutes(router *gin.Engine) {
 	// JSON-REST API Version 1
 	v1 := router.Group("/api/v1")
 	question := v1.Group("/question")

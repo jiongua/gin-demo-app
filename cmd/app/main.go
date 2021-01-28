@@ -1,11 +1,17 @@
 package main
 
 import (
-	_ "gin_demo/interal/crawl"
-	_ "gin_demo/interal/entity"
 	"gin_demo/interal/server"
+	"gin_demo/interal/task"
+	"github.com/gin-gonic/gin"
 )
 
+
 func main() {
-	server.Start()
+	router := gin.New()
+	router.Use(server.Logger())
+	server.RegisterRoutes(router)
+	task.StartAnswerNotifyWorker()
+	task.StartVoteAnswerNotifyWorker()
+	router.Run()
 }

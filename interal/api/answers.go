@@ -1,11 +1,15 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
+	"gin_demo/interal/client"
 	"gin_demo/interal/entity"
 	"gin_demo/interal/form"
 	"gin_demo/interal/task"
+	"gin_demo/interal/value"
 	"github.com/gin-gonic/gin"
+	uuid "github.com/satori/go.uuid"
 	"net/http"
 	"strconv"
 	"time"
@@ -58,6 +62,7 @@ func CreateAnswer(router *gin.RouterGroup)  {
 		// <- 写入消息队列，消费者将该消息写入回答者的粉丝时间线缓存
 		//<- 写入消息队列，消费者将该回答设置为所属问题订阅者的通知消息
 		NotifyNewAnswer(answer, c.Copy())
+		ReporterAnswer(answer, c.Copy())
 		//eventURL := fmt.Sprintf("%s/%d", c.Request.URL.Path, answer.AnswerID)
 		//log.Debugf("eventURL: %s\n", eventURL)
 		//task.NotifyTask.AddTask(mq.NewAnswerNotify(
@@ -103,6 +108,30 @@ func NotifyNewAnswer(answer entity.Answer, c *gin.Context) {
 		//Avoid publishing on the same channel from multiple threads/goroutines/processes
 		log.Debugf("send answer notify to AnswerNotifyChan[%d]\n", cap(task.AnswerNotifyChan))
 		task.AnswerNotifyChan <-message
+	}(answer)
+}
+
+//ReporterAnswer 上报用户行为记录
+func ReporterAnswer(answer entity.Answer, c *gin.Context) {
+	go func(answer entity.Answer) {
+		event := struct {
+			UserID     uuid.UUID
+			QuestionID int
+			ActionID   int
+			CreatedAt  int
+		}{
+			UserID: answer.AuthorID,
+			QuestionID: answer.QuestionRefer,
+			ActionID: value.ANSWER,
+			CreatedAt: answer.Created,
+		}
+		data, err := json.Marshal(event)
+		if err != nil {
+			log.Error(err.Error())
+		}else {
+			log.Debugf("send user_action event to EventUserActionChain\n")
+			client.ReportUserAction("user_action_collection", data)
+		}
 	}(answer)
 }
 

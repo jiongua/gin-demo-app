@@ -39,6 +39,10 @@ func GetRabbitEnv() string {
 		m["vhost"])
 }
 
+func GetReporterURL() string {
+	return GetEnvWithDefault("REPORTER_URL", "http://localhost:8082/reporter/user_action")
+}
+
 
 
 
